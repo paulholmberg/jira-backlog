@@ -37,8 +37,9 @@ function reload() {
         jira_data = jira;
         document.getElementById("starttime").value = jira_data.backlog_start.toISOString().slice(0, -1);
         if (jira_data.active_sprint) {
-            sprint_start = new Date(jira_data.active_sprint.startDate);
-            sprint_end = new Date(jira_data.active_sprint.endDate);
+            ref_sprint = jira_data.active_sprints[jira_data.active_sprints.length - 1]
+            sprint_start = new Date(ref_sprint);
+            sprint_end = new Date(ref_sprint);
             sprint_length_weeks = Math.round((sprint_end - sprint_start) / 1000 / 60 / 60 / 24 / 7);
         } else {
             sprint_length_weeks = 2;

@@ -92,8 +92,9 @@ function get_jira_info(startAt, board_name, jql, restrict_fields, on_update) {
                             jira.backlog_start = new Date();
                         }
                         else {
-                            jira.active_sprint = msg.values[0];
-                            jira.backlog_start = new Date(jira.active_sprint.endDate);
+                            jira.active_sprints = msg.values;
+                            ref_sprint = jira.active_sprints[jira.active_sprints.length - 1;
+                            jira.backlog_start = new Date(ref_sprint.endDate);
                         }
 
                         jira_call(jira_url + "/rest/agile/1.0/board/" + jira.board.id + "/configuration", function(msg) {
