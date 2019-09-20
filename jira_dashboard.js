@@ -102,8 +102,7 @@ function plot_jira(target, jira_data, velocity, startDate) {
         velocity = 30;
     }
     if (!startDate) {
-        startDate = d3.time.thursday(new Date());
-        startDate.setDate(startDate.getDate() + 7);
+        startData = jira_data.backlog_start
     }
     var velocity_per_day = velocity / 7;
 
