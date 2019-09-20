@@ -10,13 +10,15 @@ function formatObjTable(table, exclude, cls) {
 }
 
 function get_issue_data(jira_data) {
+    estimate_field = jira_data.board.config.estimation.field.fieldId;
+
     backlog = jira_data.issues.map(function(issue) {
         return [{
             x: 0,
-            y: issue.fields.customfield_10262 != null ? issue.fields.customfield_10262 : 10,
+            y: issue.fields[estimate_field] != null ? issue.fields[estimate_field] : 10,
             Key: issue.key,
             Summary: issue.fields.summary,
-            "Story Points": issue.fields.customfield_10262,
+            "Story Points": issue.fields[estimate_field],
             Version: (issue.fields.fixVersions && issue.fields.fixVersions.length > 0) ? issue.fields.fixVersions[0].name : "",
             Epic: issue.fields.epic ? issue.fields.epic.name : ""
         }]
