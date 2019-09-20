@@ -1,0 +1,81 @@
+<link rel="stylesheet" type="text/css" href="https://paulholmberg.github.io/jira-backlog/jira_dashboard.css">
+
+<p>
+<table>
+  <tr>
+    <td><button onclick="reload();">Reload data from JIRA</button><br></td>
+    <td><button onclick="jira_moves_to_clipboard(jira_data.board.config.ranking.rankCustomFieldId, jira_data.moves); jira_data.moves = [];"">Copy backlog moves to clipboard</button><br></td>
+  </tr>
+</table>
+<table>
+  <tr><td>Board:</td><td><input id="board" width="500" name="board" onkeydown = "redraw_on_enter_key()"></input></td></tr>
+  <tr><td>Velocity:</td><td><input id="velocity" type="number" name="velocity" onkeydown = "redraw_on_enter_key()"></input>(story points per sprint)</td></tr>
+  <tr><td>Sprint Length:</td><td><input id="sprintlength" type="number" name="velocity" onkeydown = "redraw_on_enter_key()"></input>(weeks)</td></tr>
+  <tr><td>Start:</td><td><input id="starttime" type="datetime-local" name="starttime" onkeydown = "redraw_on_enter_key()"></input></td></tr>
+</table>
+</p>
+
+<div id="chart"></div>
+<pre id="breakdown_tables"></pre>
+
+<script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3-tip/0.6.7/d3-tip.min.js"></script>
+<script src="https://paulholmberg.github.io/jira-backlog/jira_dashboard.js"></script>
+<script src="https://paulholmberg.github.io/jira-backlog/jira_query.js"></script>
+<script>
+document.getElementById("board").value = board_name;
+document.getElementById("velocity").value = velocity;
+
+var global_issues = [];
+var epic_list = [];
+var issues;
+var jira_data;
+ 
+function reload() {
+    var board_name = document.getElementById("board").value;
+    issues = get_jira_info(0, board_name, extra_filter_args, [], function (jira, start, total) {
+        jira_data = jira;
+        document.getElementById("starttime").value = jira_data.backlog_start.toISOString().slice(0, -1);
+        if (jira_data.active_sprint) {
+            sprint_start = new Date(jira_data.active_sprint.startDate);
+            sprint_end = new Date(jira_data.active_sprint.endDate);
+            sprint_length_weeks = Math.round((sprint_end - sprint_start) / 1000 / 60 / 60 / 24 / 7);
+        } else {
+            sprint_length_weeks = 2;
+        }
+        document.getElementById("sprintlength").value = sprint_length_weeks;
+
+        redraw(jira_data);
+
+        [global_issues, epic_list] = get_issue_data(jira_data);
+        breakdown = analyse_issues(global_issues);
+        
+        var tables = '';
+        for (var version in breakdown.versions) {
+          if (breakdown.versions.hasOwnProperty(version)) {
+            if (version === '') { version = 'No version' }
+            tables += '<p><strong>' + version + ': </strong></p>'
+            tables += formatObjTable(breakdown.versions[version], [], 'epictable')
+          }
+        }
+        document.getElementById("breakdown_tables").innerHTML = tables;
+    });
+}
+ 
+function redraw(jira_data) {
+    plot_jira('chart',
+              jira_data,
+              document.getElementById("velocity").value / document.getElementById("sprintlength").value,
+              new Date(document.getElementById("starttime").value));
+}
+
+function redraw_on_enter_key()
+{
+    if (event.keyCode == 13) {
+        redraw(jira_data);
+    }
+}
+
+// Do an initial load of the backlog to kick things off
+reload();
+</script>
