@@ -4,8 +4,6 @@ jira-backlog is a set of javascript libraries that create a custom view into the
 
 ## Getting Started
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
-
 ### Prerequisites
 
 jira-backlog is built to be embedded in a Confluence page and as such requires a Confluence and a JIRA instance.
