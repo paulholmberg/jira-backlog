@@ -93,7 +93,7 @@ function get_jira_info(startAt, board_name, jql, restrict_fields, on_update) {
                         }
                         else {
                             jira.active_sprints = msg.values;
-                            ref_sprint = jira.active_sprints[jira.active_sprints.length - 1;
+                            ref_sprint = jira.active_sprints[jira.active_sprints.length - 1];
                             jira.backlog_start = new Date(ref_sprint.endDate);
                         }
 
