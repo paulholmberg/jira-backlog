@@ -87,7 +87,14 @@ function get_jira_info(startAt, board_name, jql, restrict_fields, on_update) {
                         }
                     }
                     jira_call(jira_url + "/rest/agile/1.0/board/" + jira.board.id + "/sprint?state=active", function (msg) {
-                        console.log(msg)
+                        if (msg.values.length == 0) {
+                            window.alert('No currently active sprint, assuming backlog starts from now')
+                            jira.backlog_start = new Date();
+                        }
+                        else {
+                            jira.backlog_start = new Date(msg.values[0].endDate);
+                        }
+
                         jira_call(jira_url + "/rest/agile/1.0/board/" + jira.board.id + "/configuration", function(msg) {
                             jira.board.config = msg;
 
