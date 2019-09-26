@@ -113,7 +113,7 @@ function get_jira_info(startAt, board_name, jql, restrict_fields, on_update) {
                             if (restrict_fields != undefined)
                             {
                                 // Ensure minimal required set of fields
-                                ["summary", "epic", "fixVersions", jira.board.config.estimation.field.fieldId].forEach(function(key) {
+                                ["summary", "epic", "fixVersions", "duedate", jira.board.config.estimation.field.fieldId].forEach(function(key) {
                                     if (!restrict_fields.includes(key)) {
                                         restrict_fields.push(key);
                                     }
