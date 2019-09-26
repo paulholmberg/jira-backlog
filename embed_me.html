@@ -30,10 +30,15 @@ var global_issues = [];
 var epic_list = [];
 var issues;
 var jira_data;
+var extra_fields;
+
+if (extra_fields == undefined) {
+    extra_fields = [];
+}
  
 function reload() {
     var board_name = document.getElementById("board").value;
-    issues = get_jira_info(0, board_name, extra_filter_args, [], function (jira, start, total) {
+    issues = get_jira_info(0, board_name, extra_filter_args, extra_fields, function (jira, start, total) {
         jira_data = jira;
         document.getElementById("starttime").value = jira_data.backlog_start.toISOString().slice(0, -1);
         if (jira_data.active_sprint) {
