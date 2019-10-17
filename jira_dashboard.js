@@ -20,7 +20,8 @@ function get_issue_data(jira_data) {
             Summary: issue.fields.summary,
             "Story Points": issue.fields[estimate_field],
             Version: (issue.fields.fixVersions && issue.fields.fixVersions.length > 0) ? issue.fields.fixVersions[0].name : "",
-            Epic: issue.fields.epic ? issue.fields.epic.name : ""
+            Epic: issue.fields.epic ? issue.fields.epic.name : "",
+            DueDate: issue.fields.duedate ? new Date(issue.fields.duedate) : undefined
         }]
     });
 
@@ -419,6 +420,38 @@ function plot_jira(target, jira_data, velocity, startDate) {
             .attr("transform", function(d) {
                 return "translate(" + ((box_marginh * 2 + 10 + width) + box_marginh + d.idx * epic_barwidth + 6) + "," + (y(toDate(d.start)) + 10) + ")rotate(90)"
             });
+
+        var msduepoints = svg.selectAll(".msduepoints")
+            .data(layers.filter(d=>d.Summary.toLowerCase().startsWith('milestone:') && d.DueDate));
+            
+        msduepoints.enter()
+            .append("path")
+            .attr("class", "msduepoints")
+            .attr("transform", d=>"translate(-10, " + y(d.DueDate) + ")")
+            .on('mouseover', function (d) {
+                tip.show({'Date': d.DueDate.toDateString()})
+            })
+            .on('mouseout', tip.hide);
+
+        msduepoints.transition()
+            .attr("d", d3.svg.symbol().type("diamond"))
+            .attr("fill", d=>d.DueDate < toDate(d.y0 + d.y) ? "red" : "green")
+            .attr("transform", d=>"translate(-10, " + y(d.DueDate) + ")");
+
+        var msduelines = svg.selectAll(".msduelines")
+            .data(layers.filter(d=>d.Summary.toLowerCase().startsWith('milestone:') && d.DueDate));
+
+        msduelines.enter()
+            .append("line")
+            .attr("class", "msduelines");
+
+        msduelines.transition()
+            .attr("stroke-dasharray", "5,5")
+            .attr("stroke", d=>d.DueDate < toDate(d.y0 + d.y) ? "red" : "green")
+            .attr("x1", -10)
+            .attr("y1", d=>y(d.DueDate))
+            .attr("x2", 0)
+            .attr("y2", d=>y(toDate(d.y0 + d.y/2)));
 
         var legendlayers = svg.selectAll(".legendlayers")
             .data(versions)
