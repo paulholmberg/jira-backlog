@@ -324,8 +324,9 @@ function plot_jira(target, jira_data, velocity, startDate) {
                 .attr("width", width)
                 .style("fill", colors_google(versions.indexOf(d.Version)))
                 .on('mouseover', function(d) {
-                    d2 = d;
-                    d['Ends on'] = toDate(d.y + d.y0).toDateString();
+                    d2 = Object.assign({}, d);
+                    d2['Ends on'] = toDate(d.y + d.y0).toDateString();
+                    delete d2.DueDate
                     return tip.show(d2);
                 })
                 .on('mouseout', tip.hide);
@@ -347,7 +348,7 @@ function plot_jira(target, jira_data, velocity, startDate) {
                 .attr("y", box_marginv)
                 .attr("height", boxheight)
                 .attr("width", epic_barwidth - box_marginh - 4);
-            
+
             d3.select(this)
                 .selectAll(".milestones")
                 .datum(d)
@@ -355,7 +356,16 @@ function plot_jira(target, jira_data, velocity, startDate) {
                 .attr("d", d3.svg.symbol().type("diamond"))
                 .attr("transform", "translate(0, " + (boxheight(d)/2) + ")")
                 .on('mouseover', function (d) {
-                    tip.show({'Date': toDate(d.y + d.y0).toDateString()})
+                    tip.direction('ne')
+                    info = {'Milestone': d.Summary.slice(10),
+                            'Est Date': toDate(d.y + d.y0).toDateString()}
+                    if (d.hasOwnProperty('DueDate') && d.DueDate)
+                    {
+                        info.DueDate = d.DueDate.toDateString();
+                    }
+                    info['SP to here'] = d.y0
+                    tip.show(info)
+                    tip.direction('n')
                 })
                 .on('mouseout', tip.hide);
         }
@@ -429,7 +439,11 @@ function plot_jira(target, jira_data, velocity, startDate) {
             .attr("class", "msduepoints")
             .attr("transform", d=>"translate(-10, " + y(d.DueDate) + ")")
             .on('mouseover', function (d) {
-                tip.show({'Date': d.DueDate.toDateString()})
+                tip.direction('ne')
+                tip.show({'Milestone': d.Summary.slice(10),
+                          'Est Date': toDate(d.y + d.y0).toDateString(),
+                          'Due Date': d.DueDate.toDateString()})
+                tip.direction('n')
             })
             .on('mouseout', tip.hide);
 
