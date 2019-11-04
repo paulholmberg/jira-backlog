@@ -11,17 +11,21 @@ var jiraq = {
 
 
 function jira_call(applink_url, jira_url, on_success) {
+    var url = applink_url + encodeURIComponent(jira_url);
     AJS.$.ajax({
-        url: applink_url + encodeURIComponent(jira_url),
+        url: url,
         type: "GET",
         async: true,
         dataType: "json"
     }).done(on_success).fail(function(jqXHR, textStatus) {
         data = {
+            'jqXHR': JSON.stringify(jqXHR),
             'textStatus': textStatus,
-            'url': url
+            'applink_url': applink_url,
+            'jira_url': jira_url,
+            'full_url': url
         };
-        alert("Request failed: " + JSON.stringify(data, null, 4));
+        alert("Request to JIRA failed, detailed info below: " + JSON.stringify(data, null, 4));
     });
 }
 
