@@ -10,9 +10,9 @@ var jiraq = {
 
 
 
-function jira_call(url, on_success) {
+function jira_call(applink_url, jira_url, on_success) {
     AJS.$.ajax({
-        url: url,
+        url: applink_url + encodeURIComponent(jira_url),
         type: "GET",
         async: true,
         dataType: "json"
@@ -26,18 +26,18 @@ function jira_call(url, on_success) {
 }
 
 
-function jira_get_all(query_url, fieldname, on_update) {
+function jira_get_all(applink_url, jira_url, fieldname, on_update) {
     var updated = false;
     var messages = [];
     var n_issued = -1;
     var max_results = 50;
     
-    jira_call(query_url + "&maxResults=0", function(msg) {
+    jira_call(applink_url, jira_url + "&maxResults=0", function(msg) {
         var nvals = msg.total;
 
         function get_single(start_at, on_update) {
             n_issued = n_issued + 1;
-            jira_call(query_url + "&startAt=" + start_at + "&maxResults=" + max_results, function(msg) {
+            jira_call(applink_url, jira_url + "&startAt=" + start_at + "&maxResults=" + max_results, function(msg) {
                 messages.push(msg);
                 messages.sort(function(a, b) {
                     return a.startAt - b.startAt
@@ -74,19 +74,20 @@ function get_jira_info(startAt, board_name, jql, restrict_fields, on_update) {
 
     base_url = window.location.href.toString().split('/').slice(0, 4).join('/')
 
-    jira_call(base_url + "/rest/jiraanywhere/1.0/servers", function(msg) {
+    jira_call(base_url + "/rest/jiraanywhere/1.0/servers", "", function(msg) {
         AJS.$.each(msg, function(key, val) {
             if (val.name && val.name.indexOf('Issue System') > -1) {
-                var jira_url = base_url + "/plugins/servlet/applinks/proxy?appId=" + val.id + "&path=" + val.url;
+                var applink_url = base_url + "/plugins/servlet/applinks/proxy?appId=" + val.id + "&path=";
+                var jira_url = val.url;
 
-                jira_call(jira_url + "/rest/greenhopper/1.0/rapidviews/viewsData", function(msg) {
+                jira_call(applink_url, jira_url + "/rest/greenhopper/1.0/rapidviews/viewsData", function(msg) {
                     for (var i = 0; i < msg.views.length; i++) {
                         if (msg.views[i].name === board_name) {
                             jira.board = msg.views[i];
                             break;
                         }
                     }
-                    jira_call(jira_url + "/rest/agile/1.0/board/" + jira.board.id + "/sprint?state=active", function (msg) {
+                    jira_call(applink_url, jira_url + "/rest/agile/1.0/board/" + jira.board.id + "/sprint?state=active", function (msg) {
                         if (msg.values.length == 0) {
                             window.alert('No currently active sprint, assuming backlog starts from now')
                             jira.backlog_start = new Date();
@@ -97,7 +98,7 @@ function get_jira_info(startAt, board_name, jql, restrict_fields, on_update) {
                             jira.backlog_start = new Date(ref_sprint.endDate);
                         }
 
-                        jira_call(jira_url + "/rest/agile/1.0/board/" + jira.board.id + "/configuration", function(msg) {
+                        jira_call(applink_url, jira_url + "/rest/agile/1.0/board/" + jira.board.id + "/configuration", function(msg) {
                             jira.board.config = msg;
 
                             console.log("Board ID is " + jira.board);
@@ -122,7 +123,7 @@ function get_jira_info(startAt, board_name, jql, restrict_fields, on_update) {
                                 query_url = query_url + prefix + "fields=" + restrict_fields.join(",");
                                 prefix = "&";
                             }
-                            jira_get_all(query_url, "issues", function (messages, issues) {
+                            jira_get_all(applink_url, query_url, "issues", function (messages, issues) {
                                 jira.issues = issues;
                                 jira.messages = messages;
                                 console.log(jira);
