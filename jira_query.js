@@ -10,23 +10,29 @@ var jiraq = {
 
 
 
-function jira_call(applink_url, jira_url, on_success) {
+function jira_call(applink_url, jira_url, on_success, run_anyway) {
+    if (run_anyway == undefined) {run_anyway = false;}
+    if (!run_anyway) {
+        on_fail = function(jqXHR, textStatus) {
+            data = {
+                'jqXHR': JSON.stringify(jqXHR),
+                'textStatus': textStatus,
+                'applink_url': applink_url,
+                'jira_url': jira_url,
+                'full_url': url
+            };
+            alert("Request to JIRA failed, detailed info below: " + JSON.stringify(data, null, 4));
+        }
+    } else {
+        on_fail = on_success;
+    }
     var url = applink_url + encodeURIComponent(jira_url);
     AJS.$.ajax({
         url: url,
         type: "GET",
         async: true,
         dataType: "json"
-    }).done(on_success).fail(function(jqXHR, textStatus) {
-        data = {
-            'jqXHR': JSON.stringify(jqXHR),
-            'textStatus': textStatus,
-            'applink_url': applink_url,
-            'jira_url': jira_url,
-            'full_url': url
-        };
-        alert("Request to JIRA failed, detailed info below: " + JSON.stringify(data, null, 4));
-    });
+    }).done(on_success).fail(on_fail);
 }
 
 
@@ -91,21 +97,21 @@ function get_jira_info(startAt, board_name, jql, restrict_fields, on_update) {
                             break;
                         }
                     }
-                    jira_call(applink_url, jira_url + "/rest/agile/1.0/board/" + jira.board.id + "/sprint?state=active", function (msg) {
-                        if (msg.values.length == 0) {
-                            window.alert('No currently active sprint, assuming backlog starts from now')
-                            jira.backlog_start = new Date();
-                        }
-                        else {
-                            jira.active_sprints = msg.values;
-                            ref_sprint = jira.active_sprints[jira.active_sprints.length - 1];
-                            jira.backlog_start = new Date(ref_sprint.endDate);
-                        }
+                    jira_call(applink_url, jira_url + "/rest/agile/1.0/board/" + jira.board.id + "/configuration", function(msg) {
+                        jira.board.config = msg;
 
-                        jira_call(applink_url, jira_url + "/rest/agile/1.0/board/" + jira.board.id + "/configuration", function(msg) {
-                            jira.board.config = msg;
-
-                            console.log("Board ID is " + jira.board);
+                        console.log(jira.board);
+                    
+                        jira_call(applink_url, jira_url + "/rest/agile/1.0/board/" + jira.board.id + "/sprint?state=active", function (msg) {
+                            if (msg.values.length == 0) {
+                                window.alert('No currently active sprint, assuming backlog starts from now')
+                                jira.backlog_start = new Date();
+                            }
+                            else {
+                                jira.active_sprints = msg.values;
+                                ref_sprint = jira.active_sprints[jira.active_sprints.length - 1];
+                                jira.backlog_start = new Date(ref_sprint.endDate);
+                            }
 
                             var prefix = "?"
                             var query_url = jira_url + "/rest/agile/1.0/board/" + jira.board.id + "/backlog"
@@ -133,7 +139,7 @@ function get_jira_info(startAt, board_name, jql, restrict_fields, on_update) {
                                 console.log(jira);
                                 on_update(jira);
                             });
-                        });
+                        }, jira.board.config.type != 'scrum');
                     });
                 });
             }
