@@ -24,7 +24,7 @@ function jira_call(applink_url, jira_url, on_success, run_anyway) {
             alert("Request to JIRA failed, detailed info below: " + JSON.stringify(data, null, 4));
         }
     } else {
-        on_fail = on_success;
+        on_fail = function () {on_success()};
     }
     var url = applink_url + encodeURIComponent(jira_url);
     AJS.$.ajax({
