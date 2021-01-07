@@ -103,7 +103,7 @@ function get_jira_info(startAt, board_name, jql, restrict_fields, on_update) {
                         console.log(jira.board);
                     
                         jira_call(applink_url, jira_url + "/rest/agile/1.0/board/" + jira.board.id + "/sprint?state=active", function (msg) {
-                            if (msg.values.length == 0) {
+                            if (msg == undefined || msg.values.length == 0) {
                                 window.alert('No currently active sprint, assuming backlog starts from now')
                                 jira.backlog_start = new Date();
                             }
